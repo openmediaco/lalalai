@@ -71,12 +71,12 @@ def upload_file(file_path, license):
                 raise RuntimeError(upload_result["error"])
 
 
-def split_file(file_id, license):
+def split_file(file_id, license, stem):
     url_for_split = URL_API + "split/"
     headers = {
         "Authorization": f"license {license}",
     }
-    query_args = {'id': file_id}
+    query_args = {'id': file_id, 'stem': stem}
     encoded_args = urlencode(query_args).encode('utf-8')
     request = Request(url_for_split, encoded_args, headers=headers)
     with urlopen(request) as response:
@@ -114,9 +114,9 @@ def check_file(file_id):
 
         if task_state == "success":
             update_percent("Progress: 100%\n")
-            vocals_url = check_result["split"]["vocals"]
-            accompaniment_url = check_result["split"]["accompaniment"]
-            return vocals_url, accompaniment_url
+            stem_track_url = check_result["split"]["stem_track"]
+            back_track_url = check_result["split"]["back_track"]
+            return stem_track_url, back_track_url
 
         time.sleep(15)
 
@@ -144,37 +144,37 @@ def download_file(url_for_download, output_path):
     return file_path
 
 
-def batch_process_for_file(license, input_path, output_path):
+def batch_process_for_file(license, input_path, output_path, stem):
     try:
         print(f'Uploading the file "{input_path}"...')
         file_id = upload_file(file_path=input_path, license=license)
         print(f'The file "{input_path}" has been successfully uploaded (file id: {file_id})')
 
         print(f'Processing the file "{input_path}"...')
-        split_file(file_id, license)
-        vocals_url, accompaniment_url = check_file(file_id)
+        split_file(file_id, license, stem)
+        stem_track_url, back_track_url = check_file(file_id)
 
-        print(f'Downloading the vocal file "{vocals_url}"...')
-        downloaded_file = download_file(vocals_url, output_path)
-        print(f'The vocal file has been downloaded to "{downloaded_file}"')
+        print(f'Downloading the stem track file "{stem_track_url}"...')
+        downloaded_file = download_file(stem_track_url, output_path)
+        print(f'The stem track file has been downloaded to "{downloaded_file}"')
 
-        print(f'Downloading the accompaniment file "{accompaniment_url}"...')
-        downloaded_file = download_file(accompaniment_url, output_path)
-        print(f'The accompaniment file has been downloaded to "{downloaded_file}"')
+        print(f'Downloading the back track file "{back_track_url}"...')
+        downloaded_file = download_file(back_track_url, output_path)
+        print(f'The back track file has been downloaded to "{downloaded_file}"')
 
         print(f'The file "{input_path}" has been successfully splitted')
     except Exception as err:
         print(f'Cannot process the file "{input_path}": {err}')
 
 
-def batch_process(license, input_path, output_path):
+def batch_process(license, input_path, output_path, stem):
     if os.path.isfile(input_path):
-        batch_process_for_file(license, input_path, output_path)
+        batch_process_for_file(license, input_path, output_path, stem)
     else:
         for path in os.listdir(input_path):
             path = os.path.join(input_path, path)
             if os.path.isfile(path):
-                batch_process_for_file(license, path, output_path)
+                batch_process_for_file(license, path, output_path, stem)
 
 
 def main():
@@ -182,11 +182,12 @@ def main():
     parser.add_argument('--license', type=str, required=True, help='a user license')
     parser.add_argument('--input', type=str, required=True, help='an input directory or a file')
     parser.add_argument('--output', type=str, default=CURRENT_DIR_PATH, help='an output directory')
+    parser.add_argument('--stem', type=str, default='vocals', choices=['vocals', 'drum', 'bass', 'piano'], help='a stem option')
 
     args = parser.parse_args()
 
     os.makedirs(args.output, exist_ok=True)
-    batch_process(args.license, args.input, args.output)
+    batch_process(args.license, args.input, args.output, args.stem)
 
 
 if __name__ == '__main__':

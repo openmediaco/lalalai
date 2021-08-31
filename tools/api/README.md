@@ -8,4 +8,5 @@ lalalai_splitter.py is an example of interacting with the LALAL.AI API as descri
 % python3 lalalai_splitter.py --input <input directory or a file> \
                       --license <user license> \
                       --output <output directory>
+                      --stem <stem option> (default: 'vocals', choices: ['vocals', 'drum', 'bass', 'piano'])
 ```
