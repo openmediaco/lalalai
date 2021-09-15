@@ -182,7 +182,7 @@ def main():
     parser.add_argument('--license', type=str, required=True, help='a user license')
     parser.add_argument('--input', type=str, required=True, help='an input directory or a file')
     parser.add_argument('--output', type=str, default=CURRENT_DIR_PATH, help='an output directory')
-    parser.add_argument('--stem', type=str, default='vocals', choices=['vocals', 'drum', 'bass', 'piano'], help='a stem option')
+    parser.add_argument('--stem', type=str, default='vocals', choices=['vocals', 'drum', 'bass', 'piano', 'electric_guitar', 'acoustic_guitar'], help='a stem option')
     parser.add_argument('--filter', type=int, default=1, choices=[0, 1, 2], help='0 (mild), 1 (normal), 2 (aggressive)')
 
     args = parser.parse_args()
