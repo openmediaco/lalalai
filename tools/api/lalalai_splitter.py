@@ -71,12 +71,12 @@ def upload_file(file_path, license):
                 raise RuntimeError(upload_result["error"])
 
 
-def split_file(file_id, license, stem, filter_type):
+def split_file(file_id, license, stem, filter_type, splitter):
     url_for_split = URL_API + "split/"
     headers = {
         "Authorization": f"license {license}",
     }
-    query_args = {'id': file_id, 'stem': stem, 'filter': filter_type}
+    query_args = {'id': file_id, 'stem': stem, 'filter': filter_type, 'splitter': splitter}
     encoded_args = urlencode(query_args).encode('utf-8')
     request = Request(url_for_split, encoded_args, headers=headers)
     with urlopen(request) as response:
@@ -144,14 +144,14 @@ def download_file(url_for_download, output_path):
     return file_path
 
 
-def batch_process_for_file(license, input_path, output_path, stem, filter_type):
+def batch_process_for_file(license, input_path, output_path, stem, filter_type, splitter):
     try:
         print(f'Uploading the file "{input_path}"...')
         file_id = upload_file(file_path=input_path, license=license)
         print(f'The file "{input_path}" has been successfully uploaded (file id: {file_id})')
 
         print(f'Processing the file "{input_path}"...')
-        split_file(file_id, license, stem, filter_type)
+        split_file(file_id, license, stem, filter_type, splitter)
         stem_track_url, back_track_url = check_file(file_id)
 
         print(f'Downloading the stem track file "{stem_track_url}"...')
@@ -162,33 +162,34 @@ def batch_process_for_file(license, input_path, output_path, stem, filter_type):
         downloaded_file = download_file(back_track_url, output_path)
         print(f'The back track file has been downloaded to "{downloaded_file}"')
 
-        print(f'The file "{input_path}" has been successfully splitted')
+        print(f'The file "{input_path}" has been successfully split')
     except Exception as err:
         print(f'Cannot process the file "{input_path}": {err}')
 
 
-def batch_process(license, input_path, output_path, stem, filter_type):
+def batch_process(license, input_path, output_path, stem, filter_type, splitter):
     if os.path.isfile(input_path):
-        batch_process_for_file(license, input_path, output_path, stem, filter_type)
+        batch_process_for_file(license, input_path, output_path, stem, filter_type, splitter)
     else:
         for path in os.listdir(input_path):
             path = os.path.join(input_path, path)
             if os.path.isfile(path):
-                batch_process_for_file(license, path, output_path, stem, filter_type)
+                batch_process_for_file(license, path, output_path, stem, filter_type, splitter)
 
 
 def main():
     parser = ArgumentParser(description='Lalalai splitter')
-    parser.add_argument('--license', type=str, required=True, help='a user license')
-    parser.add_argument('--input', type=str, required=True, help='an input directory or a file')
-    parser.add_argument('--output', type=str, default=CURRENT_DIR_PATH, help='an output directory')
-    parser.add_argument('--stem', type=str, default='vocals', choices=['vocals', 'drum', 'bass', 'piano', 'electric_guitar', 'acoustic_guitar'], help='a stem option')
+    parser.add_argument('--license', type=str, required=True, help='License key')
+    parser.add_argument('--input', type=str, required=True, help='Input directory or a file')
+    parser.add_argument('--output', type=str, default=CURRENT_DIR_PATH, help='Output directory')
+    parser.add_argument('--stem', type=str, default='vocals', choices=['vocals', 'drum', 'bass', 'piano', 'electric_guitar', 'acoustic_guitar', 'synthesizer', 'voice'], help='Stem option. Phoenix is currenlty works only with stems: vocals, drum, bass, voice. Choose Cassiopeia network for the rest')
     parser.add_argument('--filter', type=int, default=1, choices=[0, 1, 2], help='0 (mild), 1 (normal), 2 (aggressive)')
+    parser.add_argument('--splitter', type=str, default='phoenix', choices=['phoenix', 'cassiopeia'], help='The type of neural network used to split audio')
 
     args = parser.parse_args()
 
     os.makedirs(args.output, exist_ok=True)
-    batch_process(args.license, args.input, args.output, args.stem, args.filter)
+    batch_process(args.license, args.input, args.output, args.stem, args.filter, args.splitter)
 
 
 if __name__ == '__main__':
