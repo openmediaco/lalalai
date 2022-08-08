@@ -15,7 +15,7 @@ lalalai_splitter.py is an example of interacting with the LALAL.AI API as descri
                                  'piano', 'electric_guitar', 
                                 'acoustic_guitar', 'synthesizer', 'voice']
                             Stem option. Phoenix is currenlty works only with stems: 
-                            vocals, drum, bass, voice. Choose Cassiopeia network for the rest
+                            vocals, drum, bass, voice, electric_guitar, acoustic_guitar. Choose Cassiopeia network for the rest
                       --filter <post-processing filter> \
                             default: 1
                             choices:
@@ -25,5 +25,5 @@ lalalai_splitter.py is an example of interacting with the LALAL.AI API as descri
                             default: 'phoenix'
                             choices: 
                                 ['phoenix', 'cassiopeia']
-                            The type of neural network used to split audio)
+                            The type of neural network used to split audio
 ```
